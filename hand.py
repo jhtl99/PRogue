@@ -38,9 +38,32 @@ class HandResult:
         self.cards = cards
         self.ranks = [c.value for c in cards]
         self.strength = hand_rankings.index(hand_type)
-    
+
     def __repr__(self):
         return f"{self.type} using cards {self.cards}"
+
+    # ---------- COMPARISON LOGIC ----------
+
+    def _cmp_key(self):
+        """
+        Lower strength is better.
+        Higher ranks are better.
+        """
+        return (-self.strength, self.ranks)
+
+    def __lt__(self, other):
+        if not isinstance(other, HandResult):
+            return NotImplemented
+        return self._cmp_key() < other._cmp_key()
+
+    def __eq__(self, other):
+        if not isinstance(other, HandResult):
+            return NotImplemented
+        return (
+            self.strength == other.strength and
+            self.ranks == other.ranks
+        )
+
 
 # each player will have a hand object to determine their standing
 class Hand:
