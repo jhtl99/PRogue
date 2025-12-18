@@ -10,7 +10,7 @@ import { HandResult } from "./handResult";
  * =========================
  * Adjust this to trade speed vs accuracy
  */
-export const NUM_TRIALS = 5000;
+export const NUM_TRIALS = 7800;
 
 /**
  * Fisher–Yates shuffle (in place)

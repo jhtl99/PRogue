@@ -1,10 +1,21 @@
+import { useState } from "react";
+import LandingPage from "./pages/StartPage";
+import UpgradesPage from "./pages/UpgradesPage";
 import PokerPage from "./pages/PokerPage";
-import "./index.css";
-import "./App.css";
+
+type Screen = "landing" | "upgrades" | "poker";
 
 export default function App() {
-  return <div className="w-full min-h-screen">
-  <PokerPage />
-</div>
+  const [screen, setScreen] = useState<Screen>("landing");
+  const [wisdom] = useState(0);
 
+  if (screen === "landing") {
+    return <LandingPage onBegin={() => setScreen("upgrades")} />;
+  }
+
+  if (screen === "upgrades") {
+    return <UpgradesPage wisdom={wisdom} onStartRun={() => setScreen("poker")} />;
+  }
+
+  return <PokerPage />;
 }
