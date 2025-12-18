@@ -1,4 +1,4 @@
-name: Deploy static content to Pages
+name: Deploy Vite app (poker-ui) to GitHub Pages
 
 on:
   push:
@@ -28,12 +28,13 @@ jobs:
         uses: actions/setup-node@v6
         with:
           node-version: lts/*
-          cache: npm
 
-      - name: Install dependencies
+      - name: Install
+        working-directory: poker-ui
         run: npm ci
 
       - name: Build
+        working-directory: poker-ui
         run: npm run build
 
       - name: Setup Pages
@@ -42,15 +43,8 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v4
         with:
-          path: "./dist"
+          path: poker-ui/dist
 
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
-``` :contentReference[oaicite:3]{index=3}
-
-## 4) Push to `main`
-```bash
-git add .
-git commit -m "Deploy to GitHub Pages"
-git push origin main
