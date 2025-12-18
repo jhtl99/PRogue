@@ -63,102 +63,202 @@ export default function PokerPage() {
 
     setBoard([...board, next]);
   }
-  const boardSlots = Array.from({ length: 5 }, (_, i) => board[i] ?? null);
-  return (
-    <div className="min-h-screen w-full bg-slate-950 text-slate-100 flex items-center justify-center">
-    <div className="w-full max-w-3xl p-6 flex flex-col gap-6">
-        <h2 className="text-2xl font-semibold">Poker Equity Simulation</h2>
 
-        <UiCard className="w-full">
-          <UiCardHeader>
-            <UiCardTitle>Your Cards</UiCardTitle>
-          </UiCardHeader>
-          <UiCardContent>
-            <div className="flex gap-3 justify-center">
-              <PlayingCard key={`hero-${heroDealId}-0`} card={heroCards[0]} dealId={heroDealId}/>
-              <PlayingCard key={`hero-${heroDealId}-1`} card={heroCards[1]} dealId={heroDealId}/>
-            </div>
-          </UiCardContent>
-        </UiCard>
+  function MockDeck() {
+    // dummy card object – rank/suit won't be used because faceDown=true
+    const dummyCard: Card = { rank: "A", suit: "S" };
 
-        <UiCard className="w-full">
-          <UiCardHeader>
-            <UiCardTitle>Board</UiCardTitle>
-          </UiCardHeader>
-          <UiCardContent>
-            
-
-
-            <div className="flex gap-3 justify-center">
-              {boardSlots.map((c, i) => (
-                <PlayingCard key={i} card={c} />
-              ))}
-            </div>
-
-
-            <div className="mt-4 flex gap-3 justify-center">
-              <button
-                onClick={addBoardCard}
-                className="px-4 py-2 rounded bg-emerald-600 hover:bg-emerald-700 text-white"
-              >
-                Add Board Card
-              </button>
-
-              <button
-                onClick={reset}
-                className="px-4 py-2 rounded bg-slate-700 hover:bg-slate-600 text-white"
-              >
-                Reset
-              </button>
-            </div>
-          </UiCardContent>
-        </UiCard>
-
-        <UiCard className="w-full">
-          <UiCardHeader>
-            <UiCardTitle>Equity (Approximate)</UiCardTitle>
-          </UiCardHeader>
-          <UiCardContent>
-
-            <div className="space-y-2">
-               <div className="flex items-center justify-between">
-                  <span className="text-slate-300"># of Opponents</span>
-                  <span className="font-mono text-slate-100">{opponentsUI}</span>
-               </div>
-
-              <input
-                type="range"
-                min={1}
-                max={8}
-                step={1}
-                value={opponentsUI}
-                onChange={(e) => setOpponentsUI(Number(e.target.value))}
-                onMouseUp={() => setOpponents(opponentsUI)}
-                onTouchEnd={() => setOpponents(opponentsUI)}
-                className="w-full"
-              />
-              <div className="flex justify-between text-xs text-slate-500">
-                  {Array.from({ length: 8 }, (_, i) => (
-                  <span key={i}>{i + 1}</span>
-                  ))}
-              </div>
-            </div>
-            <div className="min-h-[110px] mt-3">
-            <div className={isComputing ? "" : "invisible"}>Computing...</div>
-
-            {equity ? (
-              <ul className="mt-2 space-y-1">
-                <li>Win: {(equity.win * 100).toFixed(2)}%</li>
-                <li>Tie: {(equity.tie * 100).toFixed(2)}%</li>
-                <li>Loss: {(equity.loss * 100).toFixed(2)}%</li>
-              </ul>
-            ) : (
-              <div className="text-slate-400">Add board cards to compute equity.</div>
-            )}
+    return (
+      <div className="relative w-16 h-24">
+        {[0, 1, 2, 3, 4].map((i) => (
+          <div
+            key={i}
+            className="absolute"
+            style={{
+              transform: `translate(${i * -3}px, ${i * -3}px)`
+            }}
+          >
+            <PlayingCard card={dummyCard} faceDown />
           </div>
-          </UiCardContent>
-        </UiCard>
+        ))}
+      </div>
+    );
+  }
+
+
+  function PotDisplay({ amount }: { amount: number }) {
+    return (
+      <div className="flex flex-col items-center gap-1">
+        <span className="text-xs text-slate-400 uppercase tracking-wide">
+          Pot
+        </span>
+        <span className="text-2xl font-semibold text-emerald-400">
+          {amount}
+        </span>
+      </div>
+    );
+  }
+
+  function ActionBar() {
+    return (
+      <div className="flex gap-4">
+        <button className="px-6 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-black">
+          Check
+        </button>
+
+        <button className="px-6 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-black">
+          Bet
+        </button>
+
+        <button className="px-6 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-black">
+          Call
+        </button>
+
+        <button className="px-6 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-black">
+          Fold
+        </button>
+      </div>
+    );
+  }
+
+  function BurnPile({boardCount}: {boardCount:number}) {
+    const dummyCard: Card = { rank: "A", suit: "S" };
+
+    // No board cards → show empty slot
+      if (boardCount === 0) {
+        return <PlayingCard card={null} />;
+      }
+
+    return (
+      <div className="relative">
+        <PlayingCard card={dummyCard} faceDown />
+      </div>
+    );
+  }
+
+
+
+  const boardSlots = Array.from({ length: 5 }, (_, i) => board[i] ?? null);
+    return (
+    <div className="min-h-screen w-full bg-slate-950 text-slate-100 flex items-center justify-center">
+      <div className="relative w-[92vw] h-[92vh] max-w-none">
+
+
+        
+
+        {/* === TABLE SURFACE === */}
+        <div className="absolute inset-0 rounded-3xl bg-gradient-to-b from-slate-900 to-slate-950 border border-slate-800 shadow-xl" />
+
+
+        {/* === DEBUG / SIMULATION CONTROLS (TOP RIGHT) === */}
+<div className="absolute top-6 right-6 w-72 space-y-4 text-sm">
+  
+  {/* BOARD CONTROLS */}
+  <div className="flex gap-2">
+    <button
+      onClick={addBoardCard}
+      className="flex-1 px-3 py-2 rounded bg-emerald-600 hover:bg-emerald-700 text-black"
+    >
+      Add Card
+    </button>
+
+    <button
+      onClick={reset}
+      className="flex-1 px-3 py-2 rounded bg-slate-700 hover:bg-slate-600 text-black"
+    >
+      Reset
+    </button>
+  </div>
+
+  {/* EQUITY */}
+  <div className="rounded-lg bg-slate-900 border border-slate-800 p-3">
+    <div className="flex items-center justify-between mb-2">
+      <span className="text-slate-400">Equity</span>
+      <span className="font-mono">{opponents} opp</span>
+    </div>
+
+    {isComputing && (
+      <div className="text-slate-500">Computing…</div>
+    )}
+
+    {equity ? (
+      <ul className="space-y-1 font-mono">
+        <li>Win: {(equity.win * 100).toFixed(1)}%</li>
+        <li>Tie: {(equity.tie * 100).toFixed(1)}%</li>
+        <li>Lose: {(equity.loss * 100).toFixed(1)}%</li>
+      </ul>
+    ) : (
+      <div className="text-slate-500">Add board cards</div>
+    )}
+  </div>
+
+  {/* OPPONENT SLIDER */}
+  <div className="rounded-lg bg-slate-900 border border-slate-800 p-3">
+    <div className="flex justify-between mb-1">
+      <span className="text-slate-400">Opponents</span>
+      <span className="font-mono">{opponentsUI}</span>
+    </div>
+
+    <input
+      type="range"
+      min={1}
+      max={8}
+      step={1}
+      value={opponentsUI}
+      onChange={(e) => setOpponentsUI(Number(e.target.value))}
+      onMouseUp={() => setOpponents(opponentsUI)}
+      onTouchEnd={() => setOpponents(opponentsUI)}
+      className="w-full"
+    />
+  </div>
+</div>
+
+
+        {/* === MOCK DECK (LEFT) === */}
+        {/* === MOCK DECK (LEFT OF BOARD) === */}
+        <div className="absolute top-1/3 left-1/2  -translate-x-[300px]">
+          <MockDeck />
+        </div>
+
+        {/* === BURN PILE (RIGHT OF BOARD) === */}
+        <div className="absolute top-1/3 left-1/2 translate-y-[120px] -translate-x-[300px]">
+          <BurnPile boardCount={board.length}/>
+        </div>
+
+
+
+        {/* === POT (RIGHT) === */}
+        <div className="absolute right-8 top-1/2 -translate-y-1/2">
+          <PotDisplay amount={400} />
+        </div>
+
+        {/* === BOARD === */}
+        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 flex gap-3">
+          {boardSlots.map((c, i) => (
+            <PlayingCard key={i} card={c} />
+          ))}
+        </div>
+
+        {/* === ACTION BUTTONS === */}
+        <div className="absolute bottom-50 left-1/2 -translate-x-1/2">
+          <ActionBar />
+        </div>
+
+        {/* === HERO CARDS === */}
+        <div className="absolute bottom-16 left-1/2 -translate-x-1/2 flex gap-4">
+          <PlayingCard
+            key={`hero-${heroDealId}-0`}
+            card={heroCards[0]}
+            dealId={heroDealId}
+          />
+          <PlayingCard
+            key={`hero-${heroDealId}-1`}
+            card={heroCards[1]}
+            dealId={heroDealId}
+          />
+        </div>
       </div>
     </div>
   );
+
 }
