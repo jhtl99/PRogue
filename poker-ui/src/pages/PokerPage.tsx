@@ -36,6 +36,7 @@ function drawRandomHeroCards(): Card[] {
 
 export default function PokerPage() {
   const [board, setBoard] = useState<Card[]>([]);
+  const [opponentsUI, setOpponentsUI] = useState(1);
   const [opponents, setOpponents] = useState(1);
   const [heroCards, setHeroCards] = useState<Card[]>(() => drawRandomHeroCards());
   const [heroDealId, setHeroDealId] = useState(0);
@@ -66,16 +67,16 @@ export default function PokerPage() {
   return (
     <div className="min-h-screen w-full bg-slate-950 text-slate-100 flex items-center justify-center">
     <div className="w-full max-w-3xl p-6 flex flex-col gap-6">
-        <h2 className="text-2xl font-semibold">Poker Equity Sandbox</h2>
+        <h2 className="text-2xl font-semibold">Poker Equity Simulation</h2>
 
         <UiCard className="w-full">
           <UiCardHeader>
-            <UiCardTitle>Hero</UiCardTitle>
+            <UiCardTitle>Your Cards</UiCardTitle>
           </UiCardHeader>
           <UiCardContent>
             <div className="flex gap-3 justify-center">
-              <PlayingCard card={heroCards[0]} dealId={heroDealId}/>
-              <PlayingCard card={heroCards[1]} dealId={heroDealId}/>
+              <PlayingCard key={`hero-${heroDealId}-0`} card={heroCards[0]} dealId={heroDealId}/>
+              <PlayingCard key={`hero-${heroDealId}-1`} card={heroCards[1]} dealId={heroDealId}/>
             </div>
           </UiCardContent>
         </UiCard>
@@ -115,14 +116,14 @@ export default function PokerPage() {
 
         <UiCard className="w-full">
           <UiCardHeader>
-            <UiCardTitle>Equity</UiCardTitle>
+            <UiCardTitle>Equity (Approximate)</UiCardTitle>
           </UiCardHeader>
           <UiCardContent>
 
             <div className="space-y-2">
                <div className="flex items-center justify-between">
-                  <span className="text-slate-300">Opponents</span>
-                  <span className="font-mono text-slate-100">{opponents}</span>
+                  <span className="text-slate-300"># of Opponents</span>
+                  <span className="font-mono text-slate-100">{opponentsUI}</span>
                </div>
 
               <input
@@ -130,8 +131,10 @@ export default function PokerPage() {
                 min={1}
                 max={8}
                 step={1}
-                value={opponents}
-                onChange={handleOpponentsChange}
+                value={opponentsUI}
+                onChange={(e) => setOpponentsUI(Number(e.target.value))}
+                onMouseUp={() => setOpponents(opponentsUI)}
+                onTouchEnd={() => setOpponents(opponentsUI)}
                 className="w-full"
               />
               <div className="flex justify-between text-xs text-slate-500">
@@ -140,19 +143,19 @@ export default function PokerPage() {
                   ))}
               </div>
             </div>
-            {isComputing && <div>Computing...</div>}
+            <div className="min-h-[110px] mt-3">
+            <div className={isComputing ? "" : "invisible"}>Computing...</div>
 
-            {equity && (
+            {equity ? (
               <ul className="mt-2 space-y-1">
                 <li>Win: {(equity.win * 100).toFixed(2)}%</li>
                 <li>Tie: {(equity.tie * 100).toFixed(2)}%</li>
                 <li>Loss: {(equity.loss * 100).toFixed(2)}%</li>
               </ul>
-            )}
-
-            {!isComputing && !equity && (
+            ) : (
               <div className="text-slate-400">Add board cards to compute equity.</div>
             )}
+          </div>
           </UiCardContent>
         </UiCard>
       </div>
