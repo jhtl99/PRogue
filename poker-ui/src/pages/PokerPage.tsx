@@ -3,6 +3,7 @@ import { PlayingCard } from "../components/ui/cards/PlayingCard";
 import { usePokerGame } from "../game/usePokerGame";
 import { useEquity } from "../hooks/useEquity";
 import { useState} from 'react'
+import ratImage from "../assets/rat.jpg";
 
 function MockDeck() {
   const dummyCard: Card = { rank: "B", suit: "S" };
@@ -41,7 +42,7 @@ function ControlPanel({
   pot,
   boardCount,
   heroChips,
-  ratChips,
+  opponentChips,
   turn,
   equity,
   isComputing,
@@ -51,8 +52,8 @@ function ControlPanel({
   pot: number;
   boardCount: number;
   heroChips: number;
-  ratChips: number;
-  turn: "hero" | "rat";
+  opponentChips: number;
+  turn: "hero" | "opponent";
   equity: { win: number; tie: number; loss: number } | null;
   isComputing: boolean;
   onAddBoardCard: () => void;
@@ -122,11 +123,12 @@ function ControlPanel({
 export default function PokerPage() {
   const {
     hero,
-    rat,
+    opponent,
     board,
     pot,
     turn,
     showdown,
+    showdownResult,
     canCheck,
     canCall,
     canBet,
@@ -143,25 +145,81 @@ export default function PokerPage() {
   const baseBtn =
     "px-7 py-3 rounded-xl font-semibold shadow-md transition-all duration-150 active:scale-[0.97]";
 
+  const showdownWinnerLabel =
+    showdownResult?.winner === "tie"
+      ? "Tie"
+      : showdownResult?.winner === "hero"
+      ? "Hero"
+      : "Opponent";
+
+  const showdownWinnerCombo =
+    showdownResult?.winner === "tie"
+      ? "Split pot"
+      : showdownResult?.winner === "hero"
+      ? showdownResult?.hero.type
+      : showdownResult?.opponent.type;
+
   return (
-    <div className="min-h-screen w-full bg-slate-950 text-slate-100 flex items-center justify-center">
+    <div className="relative min-h-screen w-full bg-slate-950 text-slate-100 flex items-center justify-center">
+      <img
+        src={ratImage}
+        alt="Rat opponent"
+        className="absolute top-6 left-6 h-24 w-24 rounded-lg object-cover shadow-lg z-50"
+      />
+      <button
+        onClick={() => setShowDevPanel((v) => !v)}
+        className="absolute top-6 right-6 px-3 py-1 rounded bg-slate-800 text-xs text-slate-200 hover:bg-slate-700 z-50"
+      >
+        {showDevPanel ? "Hide Dev UI" : "Show Dev UI"}
+      </button>
       <div className="relative w-[92vw] h-[92vh]">
         {/* TABLE SURFACE */}
         <div className="absolute inset-0 rounded-3xl bg-gradient-to-b from-slate-900 to-slate-950 border border-slate-800 shadow-xl" />
-          <button
-            onClick={() => setShowDevPanel((v) => !v)}
-            className="absolute top-6 left-6 px-3 py-1 rounded bg-slate-800 text-xs text-slate-200 hover:bg-slate-700 z-50"
-          >
-            {showDevPanel ? "Hide Dev UI" : "Show Dev UI"}
-          </button>
 
-          {/* CONTROL PANEL (TOP RIGHT) */}
-          {showDevPanel && (
-            <ControlPanel
-              pot={pot}
+        {showdown && showdownResult && (
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 z-50 w-72 rounded-xl bg-slate-950/95 border border-slate-700 p-4 shadow-lg">
+            <div className="text-[10px] uppercase tracking-[0.2em] text-slate-400">
+              Showdown
+            </div>
+            <div className="mt-2 space-y-1 text-xs">
+              <div className="flex justify-between">
+                <span className="text-slate-400">Hero</span>
+                <span className="font-mono">{showdownResult.hero.type}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-400">Opponent</span>
+                <span className="font-mono">{showdownResult.opponent.type}</span>
+              </div>
+              <div className="flex justify-between font-semibold">
+                <span className="text-slate-300">Winner</span>
+                <span className="font-mono">
+                  {showdownWinnerLabel} ({showdownWinnerCombo})
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-400">Pot</span>
+                <span className="font-mono">
+                  {pot} →{" "}
+                  {showdownResult.winner === "tie" ? "Split" : showdownWinnerLabel}
+                </span>
+              </div>
+            </div>
+            <button
+              onClick={actions.resolveShowdown}
+              className="mt-3 w-full px-3 py-2 rounded bg-emerald-600 hover:bg-emerald-500 text-black text-xs font-semibold"
+            >
+              Proceed
+            </button>
+          </div>
+        )}
+
+        {/* CONTROL PANEL (TOP RIGHT) */}
+        {showDevPanel && (
+          <ControlPanel
+            pot={pot}
               boardCount={board.length}
               heroChips={hero.chips}
-              ratChips={rat.chips}
+              opponentChips={opponent.chips}
               turn={turn}
               equity={equity}
               isComputing={isComputing}
@@ -174,14 +232,14 @@ export default function PokerPage() {
 
         {/* OPPONENT (TOP) */}
         <div className="absolute top-14 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2">
-          <div className="text-sm text-slate-300">Rat 1</div>
+          <div className="text-sm text-slate-300">Opponent 1</div>
 
           <div className="flex items-center gap-4">
-            <PlayingCard card={rat.cards[0]} faceDown={!showdown} />
-            <PlayingCard card={rat.cards[1]} faceDown={!showdown} />
+            <PlayingCard card={opponent.hands[0]?.[0] ?? null} faceDown={!showdown} />
+            <PlayingCard card={opponent.hands[0]?.[1] ?? null} faceDown={!showdown} />
 
             <div className="text-xs text-slate-400">
-              Chips: <span className="font-mono text-slate-100">{rat.chips}</span>
+              Chips: <span className="font-mono text-slate-100">{opponent.chips}</span>
             </div>
           </div>
         </div>
