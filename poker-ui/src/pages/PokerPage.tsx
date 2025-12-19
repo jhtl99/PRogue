@@ -2,9 +2,10 @@ import type { Card } from "../engine/card";
 import { PlayingCard } from "../components/ui/cards/PlayingCard";
 import { usePokerGame } from "../game/usePokerGame";
 import { useEquity } from "../hooks/useEquity";
+import { useState} from 'react'
 
 function MockDeck() {
-  const dummyCard: Card = { rank: "A", suit: "S" };
+  const dummyCard: Card = { rank: "B", suit: "S" };
 
   return (
     <div className="relative w-16 h-24">
@@ -94,18 +95,6 @@ function ControlPanel({
         </div>
       </div>
 
-      {/* CHIPS */}
-      <div className="rounded-lg bg-slate-900 border border-slate-800 p-3 space-y-1">
-        <div className="flex justify-between">
-          <span className="text-slate-400">Hero</span>
-          <span className="font-mono">{heroChips}</span>
-        </div>
-
-        <div className="flex justify-between">
-          <span className="text-slate-400">Rat 1</span>
-          <span className="font-mono">{ratChips}</span>
-        </div>
-      </div>
 
       {/* EQUITY */}
       <div className="rounded-lg bg-slate-900 border border-slate-800 p-3 space-y-1">
@@ -147,6 +136,8 @@ export default function PokerPage() {
   // Equity is informational: hero.cards + board vs 1 opponent
   const { equity, isComputing } = useEquity(hero.cards, board, 1);
 
+  const [showDevPanel, setShowDevPanel] = useState(true);
+
   const boardSlots = Array.from({ length: 5 }, (_, i) => board[i] ?? null);
 
   const baseBtn =
@@ -157,31 +148,44 @@ export default function PokerPage() {
       <div className="relative w-[92vw] h-[92vh]">
         {/* TABLE SURFACE */}
         <div className="absolute inset-0 rounded-3xl bg-gradient-to-b from-slate-900 to-slate-950 border border-slate-800 shadow-xl" />
+          <button
+            onClick={() => setShowDevPanel((v) => !v)}
+            className="absolute top-6 left-6 px-3 py-1 rounded bg-slate-800 text-xs text-slate-200 hover:bg-slate-700 z-50"
+          >
+            {showDevPanel ? "Hide Dev UI" : "Show Dev UI"}
+          </button>
 
-        {/* CONTROL PANEL (TOP RIGHT) */}
-        <ControlPanel
-          pot={pot}
-          boardCount={board.length}
-          heroChips={hero.chips}
-          ratChips={rat.chips}
-          turn={turn}
-          equity={equity}
-          isComputing={isComputing}
-          onAddBoardCard={actions.addBoardCard}
-          onReset={actions.resetHand}
-        />
+          {/* CONTROL PANEL (TOP RIGHT) */}
+          {showDevPanel && (
+            <ControlPanel
+              pot={pot}
+              boardCount={board.length}
+              heroChips={hero.chips}
+              ratChips={rat.chips}
+              turn={turn}
+              equity={equity}
+              isComputing={isComputing}
+              onAddBoardCard={actions.addBoardCard}
+              onReset={actions.resetHand}
+              // onToggleReveal={actions.toggleReveal}
+            />
+          )}
+
 
         {/* OPPONENT (TOP) */}
         <div className="absolute top-14 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2">
           <div className="text-sm text-slate-300">Rat 1</div>
 
-          <div className="flex gap-3">
+          <div className="flex items-center gap-4">
             <PlayingCard card={rat.cards[0]} faceDown={!showdown} />
             <PlayingCard card={rat.cards[1]} faceDown={!showdown} />
-          </div>
 
-          <div className="text-xs text-slate-400">Chips: {rat.chips}</div>
+            <div className="text-xs text-slate-400">
+              Chips: <span className="font-mono text-slate-100">{rat.chips}</span>
+            </div>
+          </div>
         </div>
+
 
         {/* DECK + BURN (LEFT OF BOARD) */}
         <div className="absolute top-1/3 left-1/2 -translate-x-[300px]">
@@ -245,13 +249,15 @@ export default function PokerPage() {
         </div>
 
         {/* HERO (BOTTOM) */}
-        <div className="absolute bottom-16 left-1/2 -translate-x-1/2 flex gap-4">
+        <div className="absolute bottom-16 left-1/2 -translate-x-1/2 flex items-center gap-6">
           <PlayingCard card={hero.cards[0]} />
           <PlayingCard card={hero.cards[1]} />
-          <div className="ml-6 flex items-center text-xs text-slate-400">
-            Chips: <span className="ml-2 font-mono text-slate-100">{hero.chips}</span>
+
+          <div className="text-xs text-slate-400">
+            Chips: <span className="font-mono text-slate-100">{hero.chips}</span>
           </div>
         </div>
+
       </div>
     </div>
   );

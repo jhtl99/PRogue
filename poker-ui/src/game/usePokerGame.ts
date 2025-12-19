@@ -169,11 +169,16 @@ export function usePokerGame() {
     const heroResult = evaluateHand([...hero.cards, ...board]);
     const ratResult = evaluateHand([...rat.cards, ...board]);
 
-    if (heroResult.ranks >= ratResult.ranks) {
-      setHero((h) => ({ ...h, chips: h.chips + pot }));
+    if (heroResult.beats(ratResult)) {
+    setHero((h) => ({ ...h, chips: h.chips + pot }));
+    } else if (ratResult.beats(heroResult)) {
+    setRat((r) => ({ ...r, chips: r.chips + pot }));
     } else {
-      setRat((r) => ({ ...r, chips: r.chips + pot }));
+    // Exact tie
+    setHero((h) => ({ ...h, chips: h.chips + pot / 2 }));
+    setRat((r) => ({ ...r, chips: r.chips + pot / 2 }));
     }
+
 
     const timer = setTimeout(() => {
       resetHand(); // new cards after payout
