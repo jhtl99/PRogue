@@ -4,6 +4,7 @@ import { usePokerGame } from "../game/usePokerGame";
 import { useEquity } from "../hooks/useEquity";
 import { useState} from 'react'
 import ratImage from "../assets/rat.jpg";
+import dogImage from "../assets/dog.jpg";
 
 function MockDeck() {
   const dummyCard: Card = { rank: "B", suit: "S" };
@@ -120,7 +121,11 @@ function ControlPanel({
   );
 }
 
-export default function PokerPage() {
+type Props = {
+  onReturnToUpgrades: () => void;
+};
+
+export default function PokerPage({ onReturnToUpgrades }: Props) {
   const {
     hero,
     opponent,
@@ -129,6 +134,7 @@ export default function PokerPage() {
     turn,
     showdown,
     showdownResult,
+    matchOutcome,
     canCheck,
     canCall,
     canBet,
@@ -139,6 +145,7 @@ export default function PokerPage() {
   const { equity, isComputing } = useEquity(hero.cards, board, 1);
 
   const [showDevPanel, setShowDevPanel] = useState(true);
+  const [opponentStage, setOpponentStage] = useState<"rat" | "dog">("rat");
 
   const boardSlots = Array.from({ length: 5 }, (_, i) => board[i] ?? null);
 
@@ -159,11 +166,16 @@ export default function PokerPage() {
       ? showdownResult?.hero.type
       : showdownResult?.opponent.type;
 
+  const opponentProfile =
+    opponentStage === "rat"
+      ? { name: "Rat", image: ratImage, winCopy: "You beat the rat" }
+      : { name: "Dog", image: dogImage, winCopy: "You beat the dog" };
+
   return (
     <div className="relative min-h-screen w-full bg-slate-950 text-slate-100 flex items-center justify-center">
       <img
-        src={ratImage}
-        alt="Rat opponent"
+        src={opponentProfile.image}
+        alt={`${opponentProfile.name} opponent`}
         className="absolute top-6 left-6 h-24 w-24 rounded-lg object-cover shadow-lg z-50"
       />
       <button
@@ -175,6 +187,39 @@ export default function PokerPage() {
       <div className="relative w-[92vw] h-[92vh]">
         {/* TABLE SURFACE */}
         <div className="absolute inset-0 rounded-3xl bg-gradient-to-b from-slate-900 to-slate-950 border border-slate-800 shadow-xl" />
+
+        {matchOutcome && (
+          <div className="absolute inset-0 z-50 flex items-center justify-center bg-slate-950/80">
+            <div className="w-80 rounded-2xl border border-slate-700 bg-slate-950 p-6 text-center shadow-xl">
+              <div className="text-sm uppercase tracking-[0.2em] text-slate-400">
+                {matchOutcome === "opponent_bust" ? "Victory" : "Defeat"}
+              </div>
+              <div className="mt-3 text-lg font-semibold">
+                {matchOutcome === "opponent_bust" ? opponentProfile.winCopy : "You lost"}
+              </div>
+              {matchOutcome === "opponent_bust" ? (
+                <button
+                  onClick={() => {
+                    if (opponentStage === "rat") {
+                      setOpponentStage("dog");
+                    }
+                    actions.startNewOpponent();
+                  }}
+                  className="mt-5 w-full rounded-lg bg-emerald-600 px-3 py-2 text-sm font-semibold text-black hover:bg-emerald-500"
+                >
+                  Proceed
+                </button>
+              ) : (
+                <button
+                  onClick={onReturnToUpgrades}
+                  className="mt-5 w-full rounded-lg bg-slate-700 px-3 py-2 text-sm font-semibold text-slate-100 hover:bg-slate-600"
+                >
+                  Return to upgrades
+                </button>
+              )}
+            </div>
+          </div>
+        )}
 
         {showdown && showdownResult && (
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 z-50 w-72 rounded-xl bg-slate-950/95 border border-slate-700 p-4 shadow-lg">
@@ -199,8 +244,7 @@ export default function PokerPage() {
               <div className="flex justify-between">
                 <span className="text-slate-400">Pot</span>
                 <span className="font-mono">
-                  {pot} →{" "}
-                  {showdownResult.winner === "tie" ? "Split" : showdownWinnerLabel}
+                  {pot} {"->"} {showdownResult.winner === "tie" ? "Split" : showdownWinnerLabel}
                 </span>
               </div>
             </div>
@@ -232,7 +276,7 @@ export default function PokerPage() {
 
         {/* OPPONENT (TOP) */}
         <div className="absolute top-14 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2">
-          <div className="text-sm text-slate-300">Opponent 1</div>
+          <div className="text-sm text-slate-300">{opponentProfile.name}</div>
 
           <div className="flex items-center gap-4">
             <PlayingCard card={opponent.hands[0]?.[0] ?? null} faceDown={!showdown} />
@@ -320,3 +364,4 @@ export default function PokerPage() {
     </div>
   );
 }
+

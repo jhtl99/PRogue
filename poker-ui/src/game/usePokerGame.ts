@@ -24,6 +24,8 @@ type ShowdownResult = {
   winner: ShowdownWinner;
 };
 
+type MatchOutcome = "hero_bust" | "opponent_bust";
+
 function shuffle<T>(arr: T[]): T[] {
   const a = [...arr];
   for (let i = a.length - 1; i > 0; i--) {
@@ -43,6 +45,7 @@ export function usePokerGame() {
   const [showdownResult, setShowdownResult] = useState<ShowdownResult | null>(
     null
   );
+  const [matchOutcome, setMatchOutcome] = useState<MatchOutcome | null>(null);
 
   const [hero, setHero] = useState<PlayerState>({
     chips: STARTING_CHIPS,
@@ -71,9 +74,32 @@ export function usePokerGame() {
     setTurn("hero");
     setShowdown(false);
     setShowdownResult(null);
+    setMatchOutcome(null);
 
     setHero((h) => ({ ...h, bet: 0, cards: heroCards }));
     setOpponent((o) => ({ ...o, bet: 0, hands: [opponentCards] }));
+  }
+
+  function startNewOpponent() {
+    const newDeck = shuffle(buildDeck());
+    const heroCards = newDeck.splice(0, 2);
+    const opponentCards = newDeck.splice(0, 2);
+
+    setDeck(newDeck);
+    setBoard([]);
+    setPot(0);
+    setCurrentBet(0);
+    setTurn("hero");
+    setShowdown(false);
+    setShowdownResult(null);
+    setMatchOutcome(null);
+
+    setHero((h) => ({ ...h, bet: 0, cards: heroCards }));
+    setOpponent({
+      chips: STARTING_CHIPS,
+      bet: 0,
+      hands: [opponentCards],
+    });
   }
 
   // Initial deal once on mount
@@ -87,19 +113,22 @@ export function usePokerGame() {
   // =========================
   const heroToCall = currentBet - hero.bet;
 
-  const canCheck = turn === "hero" && heroToCall === 0 && !showdown;
-  const canCall = turn === "hero" && heroToCall > 0 && hero.chips >= heroToCall && !showdown;
-  const canBet = turn === "hero" && hero.chips > 0 && !showdown;
+  const canCheck = turn === "hero" && heroToCall === 0 && !showdown && !matchOutcome;
+  const canCall =
+    turn === "hero" && heroToCall > 0 && hero.chips >= heroToCall && !showdown && !matchOutcome;
+  const canBet = turn === "hero" && hero.chips > 0 && !showdown && !matchOutcome;
 
   // =========================
   // HERO ACTIONS
   // =========================
   function check() {
+    if (matchOutcome) return;
     if (!canCheck) return;
     setTurn("opponent");
   }
 
   function call() {
+    if (matchOutcome) return;
     if (!canCall) return;
 
     setHero((h) => ({
@@ -113,6 +142,7 @@ export function usePokerGame() {
   }
 
   function bet(amount: number) {
+    if (matchOutcome) return;
     if (!canBet) return;
     if (amount <= 0) return;
     if (hero.chips < amount) return;
@@ -130,8 +160,22 @@ export function usePokerGame() {
   }
 
   function fold() {
+    if (matchOutcome) return;
     if (showdown) return;
-    setOpponent((o) => ({ ...o, chips: o.chips + pot }));
+    const nextHeroChips = hero.chips;
+    const nextOpponentChips = opponent.chips + pot;
+
+    setOpponent((o) => ({ ...o, chips: nextOpponentChips }));
+    setPot(0);
+    setCurrentBet(0);
+    setShowdown(false);
+    setShowdownResult(null);
+
+    if (nextHeroChips <= 0) {
+      setMatchOutcome("hero_bust");
+      return;
+    }
+
     resetHand();
   }
 
@@ -141,6 +185,7 @@ export function usePokerGame() {
   useEffect(() => {
     if (turn !== "opponent") return;
     if (showdown) return;
+    if (matchOutcome) return;
 
     const opponentToCall = currentBet - opponent.bet;
 
@@ -197,7 +242,7 @@ export function usePokerGame() {
     }, 600);
 
     return () => clearTimeout(timer);
-  }, [turn, currentBet, opponent.bet, opponent.chips, opponent, showdown, board, hero, pot]);
+  }, [turn, currentBet, opponent.bet, opponent.chips, opponent, showdown, matchOutcome, board, hero, pot]);
 
   // =========================
   // BOARD CONTROL (DEBUG)
@@ -242,13 +287,35 @@ export function usePokerGame() {
   function resolveShowdown() {
     if (!showdownResult) return;
 
+    let nextHeroChips = hero.chips;
+    let nextOpponentChips = opponent.chips;
+
     if (showdownResult.winner === "hero") {
-      setHero((h) => ({ ...h, chips: h.chips + pot }));
+      nextHeroChips = hero.chips + pot;
+      setHero((h) => ({ ...h, chips: nextHeroChips }));
     } else if (showdownResult.winner === "opponent") {
-      setOpponent((o) => ({ ...o, chips: o.chips + pot }));
+      nextOpponentChips = opponent.chips + pot;
+      setOpponent((o) => ({ ...o, chips: nextOpponentChips }));
     } else {
-      setHero((h) => ({ ...h, chips: h.chips + pot / 2 }));
-      setOpponent((o) => ({ ...o, chips: o.chips + pot / 2 }));
+      nextHeroChips = hero.chips + pot / 2;
+      nextOpponentChips = opponent.chips + pot / 2;
+      setHero((h) => ({ ...h, chips: nextHeroChips }));
+      setOpponent((o) => ({ ...o, chips: nextOpponentChips }));
+    }
+
+    setPot(0);
+    setCurrentBet(0);
+    setShowdown(false);
+    setShowdownResult(null);
+
+    if (nextHeroChips <= 0) {
+      setMatchOutcome("hero_bust");
+      return;
+    }
+
+    if (nextOpponentChips <= 0) {
+      setMatchOutcome("opponent_bust");
+      return;
     }
 
     resetHand();
@@ -262,6 +329,7 @@ export function usePokerGame() {
     turn,
     showdown,
     showdownResult,
+    matchOutcome,
 
     canCheck,
     canCall,
@@ -273,6 +341,7 @@ export function usePokerGame() {
       bet,
       fold,
       resetHand,
+      startNewOpponent,
       addBoardCard,
       resolveShowdown,
     },

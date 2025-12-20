@@ -17,5 +17,5 @@ export default function App() {
     return <UpgradesPage wisdom={wisdom} onStartRun={() => setScreen("poker")} />;
   }
 
-  return <PokerPage />;
+  return <PokerPage onReturnToUpgrades={() => setScreen("upgrades")} />;
 }
