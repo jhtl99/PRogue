@@ -261,9 +261,8 @@ export function usePokerGame() {
   // SHOWDOWN: REVEAL + PAY + RESET
   // =========================
   useEffect(() => {
+    if (!showdown) return;
     if (board.length !== 5) return;
-
-    setShowdown(true);
 
     const heroResult = evaluateHand([...hero.cards, ...board]);
     const opponentHand = opponent.hands[0] ?? [];
@@ -282,7 +281,14 @@ export function usePokerGame() {
       winner,
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [board.length]);
+  }, [showdown, board.length]);
+
+  function triggerShowdown() {
+    if (showdown) return;
+    if (board.length !== 5) return;
+    if (matchOutcome) return;
+    setShowdown(true);
+  }
 
   function resolveShowdown() {
     if (!showdownResult) return;
@@ -343,6 +349,7 @@ export function usePokerGame() {
       resetHand,
       startNewOpponent,
       addBoardCard,
+      triggerShowdown,
       resolveShowdown,
     },
   };

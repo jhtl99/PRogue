@@ -1,5 +1,6 @@
 import type { Card } from "../engine/card";
 import { PlayingCard } from "../components/ui/cards/PlayingCard";
+import { BetSlider } from "../components/ui/BetSlider";
 import { usePokerGame } from "../game/usePokerGame";
 import { useEquity } from "../hooks/useEquity";
 import { useState} from 'react'
@@ -48,6 +49,8 @@ function ControlPanel({
   equity,
   isComputing,
   onAddBoardCard,
+  onShowdown,
+  canShowdown,
   onReset,
 }: {
   pot: number;
@@ -58,6 +61,8 @@ function ControlPanel({
   equity: { win: number; tie: number; loss: number } | null;
   isComputing: boolean;
   onAddBoardCard: () => void;
+  onShowdown: () => void;
+  canShowdown: boolean;
   onReset: () => void;
 }) {
   return (
@@ -69,6 +74,16 @@ function ControlPanel({
           className="flex-1 px-3 py-2 rounded bg-emerald-600 hover:bg-emerald-700 text-black"
         >
           Add Card
+        </button>
+
+        <button
+          onClick={onShowdown}
+          disabled={!canShowdown}
+          className={`flex-1 px-3 py-2 rounded text-black ${
+            canShowdown ? "bg-blue-600 hover:bg-blue-500" : "bg-blue-600/40 cursor-not-allowed"
+          }`}
+        >
+          Showdown
         </button>
 
         <button
@@ -146,6 +161,8 @@ export default function PokerPage({ onReturnToUpgrades }: Props) {
 
   const [showDevPanel, setShowDevPanel] = useState(true);
   const [opponentStage, setOpponentStage] = useState<"rat" | "dog">("rat");
+  const [showOpponentCards, setShowOpponentCards] = useState(false);
+  const [showBetSlider, setShowBetSlider] = useState(false);
 
   const boardSlots = Array.from({ length: 5 }, (_, i) => board[i] ?? null);
 
@@ -171,6 +188,8 @@ export default function PokerPage({ onReturnToUpgrades }: Props) {
       ? { name: "Rat", image: ratImage, winCopy: "You beat the rat" }
       : { name: "Dog", image: dogImage, winCopy: "You beat the dog" };
 
+  const canTriggerShowdown = board.length === 5 && !showdown && !matchOutcome;
+
   return (
     <div className="relative min-h-screen w-full bg-slate-950 text-slate-100 flex items-center justify-center">
       <img
@@ -179,8 +198,14 @@ export default function PokerPage({ onReturnToUpgrades }: Props) {
         className="absolute top-6 left-6 h-24 w-24 rounded-lg object-cover shadow-lg z-50"
       />
       <button
+        onClick={() => setShowOpponentCards((v) => !v)}
+        className="absolute bottom-16 right-6 px-3 py-1 rounded bg-slate-800 text-xs text-slate-200 hover:bg-slate-700 z-50"
+      >
+        {showOpponentCards ? "Hide Cards" : "Show Cards"}
+      </button>
+      <button
         onClick={() => setShowDevPanel((v) => !v)}
-        className="absolute top-6 right-6 px-3 py-1 rounded bg-slate-800 text-xs text-slate-200 hover:bg-slate-700 z-50"
+        className="absolute bottom-6 right-6 px-3 py-1 rounded bg-slate-800 text-xs text-slate-200 hover:bg-slate-700 z-50"
       >
         {showDevPanel ? "Hide Dev UI" : "Show Dev UI"}
       </button>
@@ -268,6 +293,8 @@ export default function PokerPage({ onReturnToUpgrades }: Props) {
               equity={equity}
               isComputing={isComputing}
               onAddBoardCard={actions.addBoardCard}
+              onShowdown={actions.triggerShowdown}
+              canShowdown={canTriggerShowdown}
               onReset={actions.resetHand}
               // onToggleReveal={actions.toggleReveal}
             />
@@ -279,8 +306,14 @@ export default function PokerPage({ onReturnToUpgrades }: Props) {
           <div className="text-sm text-slate-300">{opponentProfile.name}</div>
 
           <div className="flex items-center gap-4">
-            <PlayingCard card={opponent.hands[0]?.[0] ?? null} faceDown={!showdown} />
-            <PlayingCard card={opponent.hands[0]?.[1] ?? null} faceDown={!showdown} />
+            <PlayingCard
+              card={opponent.hands[0]?.[0] ?? null}
+              faceDown={!showdown && !showOpponentCards}
+            />
+            <PlayingCard
+              card={opponent.hands[0]?.[1] ?? null}
+              faceDown={!showdown && !showOpponentCards}
+            />
 
             <div className="text-xs text-slate-400">
               Chips: <span className="font-mono text-slate-100">{opponent.chips}</span>
@@ -334,12 +367,12 @@ export default function PokerPage({ onReturnToUpgrades }: Props) {
 
           <button
             disabled={!canBet}
-            onClick={() => actions.bet(100)}
+            onClick={() => setShowBetSlider(true)}
             className={`${baseBtn} text-black ${
               canBet ? "bg-blue-600 hover:bg-blue-500" : "opacity-40 cursor-not-allowed bg-blue-600"
             }`}
           >
-            Bet 100
+            Bet
           </button>
 
           <button
@@ -349,6 +382,20 @@ export default function PokerPage({ onReturnToUpgrades }: Props) {
             Fold
           </button>
         </div>
+
+        {showBetSlider && (
+          <div className="absolute bottom-64 left-1/2 -translate-x-1/2 z-50">
+            <BetSlider
+              chips={hero.chips}
+              minIncrement={50}
+              onCancel={() => setShowBetSlider(false)}
+              onConfirm={(amount) => {
+                actions.bet(amount);
+                setShowBetSlider(false);
+              }}
+            />
+          </div>
+        )}
 
         {/* HERO (BOTTOM) */}
         <div className="absolute bottom-16 left-1/2 -translate-x-1/2 flex items-center gap-6">
