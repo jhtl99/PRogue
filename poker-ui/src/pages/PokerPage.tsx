@@ -33,9 +33,9 @@ function BurnPile({ boardCount }: { boardCount: number }) {
 
 function PotDisplay({ amount }: { amount: number }) {
   return (
-    <div className="flex flex-col items-center gap-1">
-      <span className="text-xs text-slate-400 uppercase tracking-wide">Pot</span>
-      <span className="text-2xl font-semibold text-emerald-400">{amount}</span>
+    <div className="wood-panel rounded-2xl px-6 py-4 flex flex-col items-center gap-2">
+      <span className="text-xs uppercase tracking-wide text-slate-300">Pot</span>
+      <span className="text-2xl font-semibold gold-text">{amount}</span>
     </div>
   );
 }
@@ -191,7 +191,7 @@ export default function PokerPage({ onReturnToUpgrades }: Props) {
   const canTriggerShowdown = board.length === 5 && !showdown && !matchOutcome;
 
   return (
-    <div className="relative min-h-screen w-full bg-slate-950 text-slate-100 flex items-center justify-center">
+    <div className="relative min-h-screen w-full felt-texture text-slate-100 flex items-center justify-center">
       <img
         src={opponentProfile.image}
         alt={`${opponentProfile.name} opponent`}
@@ -211,7 +211,7 @@ export default function PokerPage({ onReturnToUpgrades }: Props) {
       </button>
       <div className="relative w-[92vw] h-[92vh]">
         {/* TABLE SURFACE */}
-        <div className="absolute inset-0 rounded-3xl bg-gradient-to-b from-slate-900 to-slate-950 border border-slate-800 shadow-xl" />
+        <div className="absolute inset-0 rounded-3xl bg-black/25 border border-emerald-900/60 shadow-xl" />
 
         {matchOutcome && (
           <div className="absolute inset-0 z-50 flex items-center justify-center bg-slate-950/80">
@@ -322,29 +322,26 @@ export default function PokerPage({ onReturnToUpgrades }: Props) {
         </div>
 
 
-        {/* DECK + BURN (LEFT OF BOARD) */}
-        <div className="absolute top-1/3 left-1/2 -translate-x-[300px]">
-          <MockDeck />
-        </div>
+        {/* DECK + BOARD + POT ROW */}
+        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 flex items-center gap-8">
+          <div className="flex flex-col items-center gap-4">
+            <MockDeck />
+            <div className="brightness-75">
+              <BurnPile boardCount={board.length} />
+            </div>
+          </div>
 
-        <div className="absolute top-1/3 left-1/2 translate-y-[120px] -translate-x-[300px] brightness-75">
-          <BurnPile boardCount={board.length} />
-        </div>
+          <div className="flex gap-4 rounded-2xl border border-emerald-900/50 bg-emerald-900/25 p-5">
+            {boardSlots.map((c, i) => (
+              <PlayingCard key={i} card={c} />
+            ))}
+          </div>
 
-        {/* POT (RIGHT) */}
-        <div className="absolute right-10 top-1/2 -translate-y-1/2">
           <PotDisplay amount={pot} />
         </div>
 
-        {/* BOARD (CENTER) */}
-        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 flex gap-3">
-          {boardSlots.map((c, i) => (
-            <PlayingCard key={i} card={c} />
-          ))}
-        </div>
-
         {/* ACTION BUTTONS (BOTTOM CENTER) */}
-        <div className="absolute bottom-48 left-1/2 -translate-x-1/2 flex gap-4">
+        <div className="absolute bottom-52 left-1/2 -translate-x-1/2 flex gap-4">
           <button
             disabled={!canCheck}
             onClick={actions.check}

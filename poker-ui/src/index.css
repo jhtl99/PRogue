@@ -1,12 +1,10 @@
-@import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&family=Share+Tech+Mono&family=Orbitron:wght@500;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700&display=swap");
 @import "tailwindcss";
 
 @theme {
-  --font-sans: "Space Grotesk", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
-  --font-mono: "Share Tech Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
-
-  /* not a Tailwind utility by default — we’ll use it via plain CSS below */
-  --font-display: "Orbitron", "Space Grotesk", system-ui, sans-serif;
+  --font-sans: "Nunito", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  --font-mono: "Nunito", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  --font-display: "Fredoka One", "Nunito", system-ui, sans-serif;
 }
 
 /* Apply globally */
@@ -14,7 +12,7 @@ html, body {
   font-family: var(--font-sans);
 }
 
-/* Give headings a retro “display” feel */
+/* Give headings a bold display feel */
 h1, h2, h3 {
   font-family: var(--font-display);
 }
@@ -38,8 +36,8 @@ h1, h2, h3 {
 
 .card-inner {
   position: relative;
-  width: 4rem;  /* matches w-16 */
-  height: 6rem; /* matches h-24 */
+  width: 5.5rem;  /* matches w-22 */
+  height: 8rem;   /* matches h-32 */
   transform-style: preserve-3d;
   transition: transform 280ms ease-out;
 }
@@ -79,6 +77,18 @@ h1, h2, h3 {
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+
+  --felt: 145 35% 15%;
+  --felt-light: 145 30% 22%;
+  --wood: 30 40% 25%;
+  --wood-light: 35 35% 35%;
+  --gold: 38 70% 50%;
+  --gold-glow: 38 80% 60%;
+  --cream: 40 30% 92%;
+  --card-back: 220 50% 35%;
+  --card-back-pattern: 220 45% 45%;
+  --shadow-card: 0 6px 16px -4px hsl(0 0% 0% / 0.4);
+  --shadow-glow: 0 0 30px hsl(var(--gold) / 0.3);
 }
 
 a {
@@ -117,3 +127,41 @@ button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
 }
 
+.felt-texture {
+  background:
+    radial-gradient(ellipse at 50% 0%, hsl(var(--felt-light)) 0%, transparent 50%),
+    linear-gradient(180deg, hsl(var(--felt)) 0%, hsl(145 35% 10%) 100%);
+}
+
+.card-slot {
+  border: 2px dashed hsl(var(--gold) / 0.3);
+  background: hsl(var(--felt-light) / 0.5);
+  box-shadow: inset 0 2px 8px hsl(0 0% 0% / 0.2);
+}
+
+.game-card {
+  background: hsl(var(--cream));
+  box-shadow: var(--shadow-card);
+}
+
+.game-card-back {
+  background:
+    repeating-linear-gradient(
+      45deg,
+      hsl(var(--card-back)) 0px,
+      hsl(var(--card-back)) 10px,
+      hsl(var(--card-back-pattern)) 10px,
+      hsl(var(--card-back-pattern)) 20px
+    );
+  box-shadow: var(--shadow-card);
+}
+
+.wood-panel {
+  background: hsl(var(--wood) / 0.8);
+  border: 2px solid hsl(var(--wood-light));
+  box-shadow: var(--shadow-glow);
+}
+
+.gold-text {
+  color: hsl(var(--gold));
+}

@@ -20,8 +20,9 @@ function isRedSuit(suit: string) {
 
 function CardBack() {
   return (
-    <div className="h-24 w-16 rounded-md border border-slate-700 bg-gradient-to-br from-slate-800 to-slate-900 grid place-items-center">
-      <div className="h-10 w-8 rounded border border-slate-500/40" />
+    <div className="h-32 w-22 rounded-xl game-card-back grid place-items-center relative overflow-hidden">
+      <div className="absolute inset-2 rounded-lg border border-blue-300/30" />
+      <div className="h-8 w-8 rounded-full bg-blue-300/20" />
     </div>
   );
 }
@@ -31,14 +32,14 @@ function CardFront({ card }: { card: Card }) {
   const red = isRedSuit(card.suit);
 
   return (
-    <div className="h-24 w-16 rounded-md border border-slate-300 bg-white px-2 py-1 flex flex-col justify-between">
-      <div className={`text-sm font-semibold ${red ? "text-red-600" : "text-black"}`}>
+    <div className="h-32 w-22 rounded-xl game-card px-2 py-1 flex flex-col justify-between">
+      <div className={`text-sm font-semibold ${red ? "text-red-600" : "text-slate-900"}`}>
         {card.rank}
       </div>
-      <div className={`text-2xl leading-none text-center ${red ? "text-red-600" : "text-black"}`}>
+      <div className={`text-2xl leading-none text-center ${red ? "text-red-600" : "text-slate-900"}`}>
         {suitSymbol}
       </div>
-      <div className={`text-sm font-semibold text-right ${red ? "text-red-600" : "text-black"}`}>
+      <div className={`text-sm font-semibold text-right ${red ? "text-red-600" : "text-slate-900"}`}>
         {card.rank}
       </div>
     </div>
@@ -49,7 +50,7 @@ export function PlayingCard({ card, faceDown, dealId }: Props) {
   // If there is no card, show an empty slot (no flip)
   if (!card) {
     return (
-      <div className="h-24 w-16 rounded-md border border-dashed border-slate-600 bg-slate-900/40" />
+      <div className="h-32 w-22 rounded-xl card-slot" />
     );
   }
 
@@ -97,7 +98,7 @@ export function PlayingCard({ card, faceDown, dealId }: Props) {
 
 
   return (
-    <div className="card-flip h-24 w-16">
+    <div className="card-flip h-32 w-22">
       <div className={`card-inner ${flipped ? "is-flipped" : ""}`}>
         <div className="card-face card-back">
           <CardBack />
